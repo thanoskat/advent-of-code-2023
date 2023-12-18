@@ -1,98 +1,84 @@
-// https://adventofcode.com/2023/day/1#part2
-// 54418
+// https://adventofcode.com/2023/day/2
+// 1853
+
 package main
 
 import (
 	"bufio"
 	"fmt"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
-	"unicode"
 )
 
 func main() {
 
+	bagCubes := map[string]int{
+		"red":   12,
+		"green": 13,
+		"blue":  14,
+	}
+
+	var invalidGameIds []int
+	allGameIdsSum := 0
+
 	scanner := bufio.NewScanner(os.Stdin)
-	sum := 0
 
 	for scanner.Scan() {
 
 		line := scanner.Text()
 
-		lineWithDigits := ReplaceStringDigits(line)
-
-		firstDigit, lastDigit := FindDigits(lineWithDigits)
-
-		valueStr := (string(firstDigit) + string(lastDigit))
-
-		value, err := strconv.Atoi(valueStr)
-		if err != nil {
-			fmt.Println(err.Error())
-			return
+		gameIdPart, gamePart, found := strings.Cut(line, ": ")
+		if !found {
+			fmt.Println("Failed to get game id part")
 		}
 
-		// fmt.Printf("%v %v %v\n", line, lineWithDigits, value)
-		sum += value
+		_, gameIdStr, found := strings.Cut(gameIdPart, " ")
+		if !found {
+			fmt.Println("Failed to get game id str")
+		}
 
-	}
+		gameId, err := strconv.Atoi(gameIdStr)
+		if err != nil {
+			fmt.Println("Failed to get game id")
+			os.Exit(1)
+		}
 
-	fmt.Println(sum)
-}
+		games := strings.Split(gamePart, "; ")
 
-func ReplaceStringDigits(line string) string {
+		for _, game := range games {
 
-	var digits = map[string]string{
-		"1": "one",
-		"2": "two",
-		"3": "three",
-		"4": "four",
-		"5": "five",
-		"6": "six",
-		"7": "seven",
-		"8": "eight",
-		"9": "nine",
-	}
+			cubeParts := strings.Split(game, ", ")
 
-	processedCharacters := ""
-	index := 0
-	occurancesSoFar := 1
+			for _, cubePart := range cubeParts {
 
-	for i := 0; i < len(line); i++ {
+				count, color, found := strings.Cut(cubePart, " ")
+				if !found {
+					fmt.Println("Failed to get cube details")
+					os.Exit(1)
+				}
 
-		processedCharacters += string(line[i])
+				n, err := strconv.Atoi(count)
+				if err != nil {
+					fmt.Println("Failed to get cube count")
+					os.Exit(1)
+				}
 
-		for digit, digitName := range digits {
-
-			if strings.HasSuffix(processedCharacters, digitName) {
-				index = i - len(digitName) + occurancesSoFar
-				processedCharacters = processedCharacters[:index] + digit + processedCharacters[index:]
-				occurancesSoFar += 1
-				break
+				if n > bagCubes[color] && !slices.Contains(invalidGameIds, gameId) {
+					invalidGameIds = append(invalidGameIds, gameId)
+				}
 			}
 		}
+
+		allGameIdsSum += gameId
 	}
 
-	return processedCharacters
-}
+	invalidGameIdsSum := 0
 
-func FindDigits(
-	line string,
-) (
-	firstDigit rune,
-	lastDigit rune,
-) {
-
-	for _, rn := range line {
-
-		if firstDigit == 0 && unicode.IsDigit(rn) {
-			firstDigit = rn
-		}
-
-		if unicode.IsDigit(rn) {
-			lastDigit = rn
-		}
+	for _, invalidGameId := range invalidGameIds {
+		invalidGameIdsSum += invalidGameId
 	}
 
-	return
+	fmt.Println(allGameIdsSum - invalidGameIdsSum)
 }
