@@ -1,4 +1,4 @@
-// https://adventofcode.com/2023/day/1#part2
+// https://adventofcode.com/2023/day/1
 // 54418
 
 package main
